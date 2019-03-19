@@ -29,9 +29,12 @@ def train(config):
     print('===> Loading datasets')
 
     dataset = Dataset(config)
-    train_size = int(0.9 * len(dataset))
+    print('dataset:', len(dataset))
+    train_size = int(0.6 * len(dataset))
     test_size = len(dataset) - train_size
     train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
+    print('train dataset:', len(train_dataset))
+    print('test dataset:', len(test_dataset))
     training_data_loader = DataLoader(dataset=train_dataset, num_workers=config.threads, batch_size=config.batchsize, shuffle=True)
     test_data_loader = DataLoader(dataset=test_dataset, num_workers=config.threads, batch_size=config.test_batchsize, shuffle=False)
 
@@ -79,6 +82,7 @@ def train(config):
     logreport = LogReport(log_dir=config.out_dir)
     testreport = TestReport(log_dir=config.out_dir)
 
+    print('===> begin')
     # main
     for epoch in range(1, config.epoch + 1):
         for iteration, batch in enumerate(training_data_loader, 1):
@@ -90,7 +94,7 @@ def train(config):
             ################
             ### Update D ###
             ################
-
+            
             opt_dis.zero_grad()
 
             # train with fake
@@ -134,7 +138,7 @@ def train(config):
             opt_gen.step()
 
             # log
-            if iteration % 100 == 0:
+            if iteration % 10 == 0:
                 print("===> Epoch[{}]({}/{}): loss_d_fake: {:.4f} loss_d_real: {:.4f} loss_g_gan: {:.4f} loss_g_l1: {:.4f}".format(
                 epoch, iteration, len(training_data_loader), loss_d_fake.item(), loss_d_real.item(), loss_g_gan.item(), loss_g_l1.item()))
                 
@@ -146,10 +150,11 @@ def train(config):
 
                 logreport(log)
 
+        print('epoch', epoch, 'finished')
         with torch.no_grad():
             log_test = test(config, test_data_loader, gen, criterionMSE, epoch)
             testreport(log_test)
-
+        print('test finished')
         if epoch % config.snapshot_interval == 0:
             checkpoint(config, epoch, gen, dis)
 

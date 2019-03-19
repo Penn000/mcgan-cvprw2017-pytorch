@@ -11,7 +11,7 @@ def gpu_manage(config):
         os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(map(str, config.gpu_ids))
         config.gpu_ids = list(range(len(config.gpu_ids)))
 
-    print(os.environ['CUDA_VISIBLE_DEVICES'])
+    # print(os.environ['CUDA_VISIBLE_DEVICES'])
 
     if config.manualSeed is None:
         config.manualSeed = random.randint(1, 10000)

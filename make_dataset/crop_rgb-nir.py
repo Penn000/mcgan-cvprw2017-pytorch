@@ -1,11 +1,12 @@
 import argparse
 from pathlib import Path
 
-import gdal
+# import gdal
 import numpy as np
 from PIL import Image
 from joblib import Parallel, delayed
-from colorcorrect import algorithm as cca
+import cv2 as cv
+# from colorcorrect import algorithm as cca
 
 
 def crop(filename, input_dir, output_dir, size=256, colorcorrect=False):
@@ -16,11 +17,17 @@ def crop(filename, input_dir, output_dir, size=256, colorcorrect=False):
     path_out_rgb_dir = Path(output_dir) / 'RGB'
     path_out_nir_dir = Path(output_dir) / 'NIR'
 
-    ds = gdal.Open(str(path_in))
-    data_matrix = ds.ReadAsArray()
+    # ds = gdal.Open(str(path_in))
+    # data_matrix = ds.ReadAsArray()
+    data_matrix = np.load('../data/img.npy')
+    data_matrix = 255 / 65535.0 * data_matrix
+    # data_matrix.dtype = 'float32'
+    print(type(data_matrix[0][0][0]))
 
     rgb = np.transpose(data_matrix[:3, :, :], (1, 2, 0))
     nir = data_matrix[3, :, :]
+    print(rgb.shape)
+    print(nir.shape)
 
     height, width = nir.shape
     hnum = height // size
@@ -38,14 +45,21 @@ def crop(filename, input_dir, output_dir, size=256, colorcorrect=False):
                 continue
             
             if colorcorrect:
-                crop_rgb = cca.stretch(cca.grey_world(crop_rgb))
+                pass
+                # crop_rgb = cca.stretch(cca.grey_world(crop_rgb))
             
+        
             path_out_rgb = path_out_rgb_dir / '{}_{:06d}.png'.format(name, num)
             path_out_nir = path_out_nir_dir / '{}_{:06d}.png'.format(name, num)
             num += 1
 
-            Image.fromarray(crop_rgb).save(path_out_rgb)
-            Image.fromarray(crop_nir).save(path_out_nir)
+            print(type(path_out_rgb))
+            print(crop_rgb.shape)
+            # Image.fromarray(crop_rgb).save(path_out_rgb)
+            # Image.fromarray(crop_nir).save(path_out_nir)
+            print(str(path_out_rgb))
+            cv.imwrite(str(path_out_rgb), crop_rgb)
+            cv.imwrite(str(path_out_nir), crop_nir)
 
     print('{} images rejected'.format(rejected))
     print('{} images generated'.format(num))

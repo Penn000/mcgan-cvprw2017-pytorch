@@ -19,7 +19,7 @@ def main(args):
 
         cloud = np.array(co.Colours).reshape([256, 256, 4])
         cloud = (cloud * 255).astype(np.uint8)
-
+        
         cv2.imwrite(os.path.join(args.out_dir, 'cloud_{:06d}.png'.format(i)), cloud)
 
     print('{} images made. done.'.format(i+1))
