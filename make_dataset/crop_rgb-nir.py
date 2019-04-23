@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image
 from joblib import Parallel, delayed
 import cv2 as cv
-# from colorcorrect import algorithm as cca
+from colorcorrect import algorithm as cca
 
 
 def crop(filename, input_dir, output_dir, size=256, colorcorrect=False):
@@ -45,8 +45,7 @@ def crop(filename, input_dir, output_dir, size=256, colorcorrect=False):
                 continue
             
             if colorcorrect:
-                pass
-                # crop_rgb = cca.stretch(cca.grey_world(crop_rgb))
+                crop_rgb = cca.stretch(cca.grey_world(crop_rgb))
             
         
             path_out_rgb = path_out_rgb_dir / '{}_{:06d}.png'.format(name, num)
