@@ -13,34 +13,39 @@ class Dataset(data.Dataset):
         super().__init__()
         self.config = config
 
-        with open(config.imlist, 'rb') as f:
-            self.imlist = pickle.load(f, encoding='latin-1')
+        # with open(config.imlist, 'rb') as f:
+        #    self.imlist = pickle.load(f, encoding='latin-1')
+        self.imlist = os.listdir('data/RGB/')
 
         cloud_files = glob.glob(os.path.join(config.cloud_dir, '*.png'))
         self.cloud_files = cloud_files
         self.n_cloud = len(cloud_files)
 
     def __getitem__(self, index):
+        # print(os.path.join(self.config.rgbnir_dir, 'RGB', str(self.imlist[index])))
         rgb = cv2.imread(os.path.join(self.config.rgbnir_dir, 'RGB', str(self.imlist[index])), 1).astype(np.float32)
         nir = cv2.imread(os.path.join(self.config.rgbnir_dir, 'NIR', str(self.imlist[index])), 0).astype(np.float32)
         cloud = cv2.imread(self.cloud_files[random.randrange(self.n_cloud)], -1).astype(np.float32)
-
+        # print('rgb', rgb[20, 30, :])
+        # print('nir', nir[20, 30])
         alpha = cloud[:, :, 3] / 255.
         alpha = np.broadcast_to(alpha[:, :, None], alpha.shape + (3,))
         cloud_rgb = (1. - alpha) * rgb + alpha * cloud[:, :, :3]
         cloud_rgb = np.clip(cloud_rgb, 0., 255.)
 
         cloud_mask = cloud[:, :, 3]
-
+        # print('cloud_rgb', cloud_rgb[20, 30, :])
+        # print('cloud_mask', cloud_mask[20, 30])
         x = np.concatenate((cloud_rgb, nir[:, :, None]), axis=2)
         t = np.concatenate((rgb, cloud_mask[:, :, None]), axis=2)
 
         x = x / 127.5 - 1
         t = t / 127.5 - 1
-
+        # print('x', x[0, 0, :])
+        # print('t', t[0, 0, :])
         x = x.transpose(2, 0, 1)
         t = t.transpose(2, 0, 1)
-
+        # print('===================================')
         return x, t
 
     def __len__(self):
